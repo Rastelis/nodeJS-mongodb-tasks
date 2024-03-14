@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
             await mkdir(uploadDir);
         }
 
-        next(null, './uploads');
+        next(null, uploadDir);
     },
     filename: (req, file, next) => {
         const fileSplit = file.originalname.split('.');
@@ -27,17 +27,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage: storage,
-    fileFilter: (req,file,next) =>{
+    // limits: { filesize: 2 * 1024 * 1024 },
+    fileFilter: (req, file, next) => {
         const formats = [
             'image/jpeg',
             'image/png',
-            'image/svg+xml'
+            'image/svg+xml',
+            'image/gif'
         ]
-        if(formats.includes(file.mimetype)) {
-            next(null,true);
+        if (formats.includes(file.mimetype)) {
+            next(null, true)
         }
         else {
-            next(null,false);
+            next(null, false);
         }
     }
 });
