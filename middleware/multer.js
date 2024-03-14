@@ -39,7 +39,7 @@ const upload = multer({
             next(null, true)
         }
         else {
-            next(null, false);
+            next(new Error('Wrong format'), false);
         }
     }
 });

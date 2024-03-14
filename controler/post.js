@@ -3,6 +3,7 @@ import Post from "../models/post.js";
 import mongoose from "mongoose";
 import upload from "../middleware/multer.js";
 import { unlink } from 'node:fs/promises'
+import multer from "multer";
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router.get('/', async (req, res) => {
 });
 
 //Create new post
+
 router.post('/', upload.single('picture'), async (req, res) => {
     req.body.created_at = new Date();
     req.body.picture = req.file?.filename
@@ -38,20 +40,29 @@ router.post('/', upload.single('picture'), async (req, res) => {
     res.send(data);
 });
 
+const uploadFn = upload.single('picture');
 // Edit old post
-router.put('/:id', upload.single('picture'), async (req, res) => {
-    console.log(req.file);
-    if (req.file) {
-        const { picture } = await Post.findById(req.params.id);
-        if (picture) {
-            await unlink('./uploads/' + picture);
-            await Post.findByIdAndUpdate(req.params.id, { picture: req.file.filename });
-        } else {
-            await Post.findByIdAndUpdate(req.params.id, { picture: req.file.filename });
+// router.put('/:id', upload.single('picture')(req,res,(err)=>{
+router.put('/:id', (req, res) => {
+    uploadFn(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            console.log("multer error")
+        } else if (err) {
+            console.log("unknown error")
         }
-    }
-    await Post.findByIdAndUpdate(req.params.id, req.body);
-    res.send(await Post.findById(req.params.id));
+        console.log(req.file);
+        if (req.file) {
+            const { picture } = await Post.findById(req.params.id);
+            if (picture) {
+                await unlink('./uploads/' + picture);
+                await Post.findByIdAndUpdate(req.params.id, { picture: req.file.filename });
+            } else {
+                await Post.findByIdAndUpdate(req.params.id, { picture: req.file.filename });
+            }
+        }
+        await Post.findByIdAndUpdate(req.params.id, req.body);
+        res.send(await Post.findById(req.params.id));
+    });
 });
 
 router.delete('/:id', async (req, res) => {
