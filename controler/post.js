@@ -46,11 +46,13 @@ const uploadFn = upload.single('picture');
 router.put('/:id', (req, res) => {
     uploadFn(req, res, async (err) => {
         if (err instanceof multer.MulterError) {
-            console.log("multer error")
+            console.log("multer error");
+            console.log(err);
         } else if (err) {
-            console.log("unknown error")
+            console.log("unknown error");
+            console.log(err);
         }
-        console.log(req.file);
+        // console.log(req.file);
         if (req.file) {
             const { picture } = await Post.findById(req.params.id);
             if (picture) {
@@ -66,6 +68,9 @@ router.put('/:id', (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
+    const {picture} = await Post.findById(req.params.id)
+    // console.log(picture);
+    await unlink('./uploads/' + picture);
     await Post.findByIdAndDelete(req.params.id);
     res.send("Post Deleted")
 });
